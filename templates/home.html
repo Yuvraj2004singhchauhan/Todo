@@ -1,0 +1,117 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h2 class="text-2xl font-bold mb-6">All Tasks</h2>
+
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 lg:grid-cols-4 gap-6">
+    <a href="{% url 'add_task' %}" class="bg-indigo-600 text-white px-1 py-2 rounded mb-4 inline-block">
+        + Add Task
+    </a>
+    <form method="get" class="mb-5 flex gap-2">
+        <input type="text" name="search" placeholder="Search tasks..." class="border p-2 rounded w-full"
+            value="{{ request.GET.search }}">
+
+        <button class="bg-indigo-600 text-white px-4 rounded">
+            Search
+        </button>
+    </form>
+    <div class="grid grid-cols-3 gap-4 mb-6">
+
+        <div class="bg-white p-4 rounded shadow text-center">
+            <h3 class="text-xl font-bold">{{ total_tasks }}</h3>
+            <p class="text-gray-500">Total Tasks</p>
+        </div>
+        <div class="bg-white p-4 rounded shadow text-center">
+            <h3 class="text-green-600 text-xl font-bold">{{ completed_tasks }}</h3>
+            <p class="text-gray-500">Completed</p>
+        </div>
+
+        <div class="bg-white p-4 rounded shadow text-center">
+            <h3 class="text-red-600 text-xl font-bold">{{ pending_tasks }}</h3>
+            <p class="text-gray-500">Pending</p>
+        </div>
+    </div>
+    <div class="grid grid-cols-3 gap-5">
+            <a href="?sort=original"  class="bg-gray-200 px-3 py-1 rounded">Original</a>
+            <a href="?sort=due" class="bg-gray-200 px-3 py-1 rounded">Sort by Due Date</a>
+            <a href="?sort=priority" class="bg-gray-200 px-3 py-1 rounded">Sort by Priority</a>
+    </div>
+
+
+    {% for task in tasks %}
+    <div class="bg-white p-6 rounded-lg shadow">
+        <h3 class="text-xl font-semibold mb-2">
+            {{ task.title }}
+        </h3>
+        <p class="text-sm font-medium mt-1">
+            Priority:
+            <span class="
+        {% if task.priority == 'High' %}
+            text-red-600
+        {% elif task.priority == 'Medium' %}
+            text-yellow-500
+        {% else %}
+            text-green-600
+        {% endif %}
+    ">
+                {{ task.priority }}
+            </span>
+        </p>
+
+        <p class="text-sm text-gray-500">
+            Created: {{ task.created_at }}
+        </p>
+        <form method="post" action="{% url 'toggle_task' task.pk %}">
+            {% csrf_token %}
+            <button class="mt-2 px-3 py-1 rounded 
+        {% if task.completed %}
+            bg-green-500 text-white
+        {% else %}
+            bg-gray-300
+        {% endif %}">
+                {% if task.completed %}
+                Completed
+                {% else %}
+                Mark Complete
+                {% endif %}
+            </button>
+        </form>
+
+        {% if task.completed %}
+        <span class="text-green-600 font-semibold">Completed</span>
+        {% else %}
+        <span class="text-red-500 font-semibold">Pending</span>
+        {% endif %}
+        <div class="mt-4 flex justify-between">
+            <a href="{% url 'edit_task' task.pk %}" class="text-blue-600 font-semibold">
+                Edit
+            </a>
+
+            <a href="{% url 'delete_task' task.pk %}" class="text-red-600 font-semibold">
+                Delete
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <p>No tasks available.</p>
+    {% endfor %}
+
+</div>
+<div class="mt-6 flex justify-center space-x-2">
+    {% if page_obj.has_previous %}
+    <a href="?page=1" class="px-3 py-1 bg-gray-300 rounded">First</a>
+    <a href="?page={{ page_obj.previous_page_number }}" class="px-3 py-1 bg-gray-300 rounded">Previous</a>
+    {% endif %}
+
+    <span class="px-3 py-1 bg-indigo-600 text-white rounded">
+        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+    </span>
+
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}" class="px-3 py-1 bg-gray-300 rounded">Next</a>
+    <a href="?page={{ page_obj.paginator.num_pages }}" class="px-3 py-1 bg-gray-300 rounded">Last</a>
+    {% endif %}
+</div>
+
+{% endblock %}
